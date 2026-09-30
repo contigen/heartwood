@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/heartwood-core",
+    "crates/heartwood-app",
+]
+resolver = "2"
