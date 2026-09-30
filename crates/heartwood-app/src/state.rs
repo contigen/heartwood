@@ -34,7 +34,6 @@ pub struct AppState {
     pub all_transactions: Vec<ShieldedTransactionPlan>,
     pub outbox: DeferredQueue,
     pub timing_samples: Vec<TimingSample>,
-    pub current_pin: Option<String>,
 }
 
 impl AppState {
@@ -60,7 +59,6 @@ impl AppState {
             all_transactions: Vec::new(),
             outbox: DeferredQueue::new(),
             timing_samples: Vec::new(),
-            current_pin: None,
         }
     }
 
@@ -87,7 +85,6 @@ impl AppState {
 
         self.active_session = Some(session);
         self.last_metrics = Some(metrics.clone());
-        self.current_pin = Some(pin.to_string());
 
         Ok(metrics)
     }
@@ -95,7 +92,6 @@ impl AppState {
     pub fn lock(&mut self) {
         self.active_session = None;
         self.last_metrics = None;
-        self.current_pin = None;
     }
 
     pub fn send(

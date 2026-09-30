@@ -3,7 +3,7 @@ use crate::error::{HeartwoodError, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::time::Instant;
-use zeroize::ZeroizeOnDrop;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Container total size: 64 KiB (65,536 bytes).
 pub const CONTAINER_SIZE: usize = 64 * 1024;
@@ -70,6 +70,18 @@ pub struct Container {
     data: Vec<u8>,
 }
 
+impl Default for Container {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for Container {
+    fn drop(&mut self) {
+        self.data.zeroize();
+    }
+}
+
 impl Container {
     /// Creates a new fixed-size container completely filled with CSPRNG noise.
     pub fn new() -> Self {
@@ -129,10 +141,12 @@ impl Container {
         let mut salt = [0u8; kdf::SALT_LEN];
         entropy::fill_random(&mut salt);
 
-        let (key, nonce) = kdf::derive_key_and_nonce(pin, &salt, aad)?;
+        let (mut key, mut nonce) = kdf::derive_key_and_nonce(pin, &salt, aad)?;
         let serialized = serde_json::to_vec(descriptor)?;
 
         if serialized.len() > HEADER_PAYLOAD_SIZE - 4 {
+            key.zeroize();
+            nonce.zeroize();
             return Err(HeartwoodError::Keystore("Descriptor exceeds maximum header size".into()));
         }
 
@@ -144,6 +158,9 @@ impl Container {
         entropy::fill_random(&mut padded[4 + serialized.len()..]);
 
         let ciphertext = aead::encrypt(&key, &nonce, &padded, aad)?;
+        key.zeroize();
+        nonce.zeroize();
+        padded.zeroize();
 
         let payload_offset = offset + kdf::SALT_LEN;
         self.data[offset..payload_offset].copy_from_slice(&salt);
@@ -164,21 +181,21 @@ impl Container {
 
         // Step 1: Slot 0 evaluation
         let salt_0 = &self.data[SLOT_0_OFFSET..SLOT_0_PAYLOAD_OFFSET];
-        let (key_0, nonce_0) = kdf::derive_key_and_nonce(pin, salt_0, AAD_SLOT_0)
+        let (mut key_0, mut nonce_0) = kdf::derive_key_and_nonce(pin, salt_0, AAD_SLOT_0)
             .unwrap_or(([0u8; 32], [0u8; 12]));
         let ct_0 = &self.data[SLOT_0_PAYLOAD_OFFSET..SLOT_0_PAYLOAD_OFFSET + HEADER_CIPHERTEXT_SIZE];
         let desc_0 = Self::try_decrypt(&key_0, &nonce_0, ct_0, AAD_SLOT_0);
 
         // Step 2: Slot 1 evaluation (always run to preserve timing equality)
         let salt_1 = &self.data[SLOT_1_OFFSET..SLOT_1_PAYLOAD_OFFSET];
-        let (key_1, nonce_1) = kdf::derive_key_and_nonce(pin, salt_1, AAD_SLOT_1)
+        let (mut key_1, mut nonce_1) = kdf::derive_key_and_nonce(pin, salt_1, AAD_SLOT_1)
             .unwrap_or(([0u8; 32], [0u8; 12]));
         let ct_1 = &self.data[SLOT_1_PAYLOAD_OFFSET..SLOT_1_PAYLOAD_OFFSET + HEADER_CIPHERTEXT_SIZE];
         let desc_1 = Self::try_decrypt(&key_1, &nonce_1, ct_1, AAD_SLOT_1);
 
         let elapsed = start.elapsed().as_millis() as u64;
 
-        if let Some(d0) = desc_0 {
+        let result = if let Some(d0) = desc_0 {
             (
                 d0,
                 UnlockMetrics {
@@ -210,7 +227,15 @@ impl Container {
                     is_synthetic: true,
                 },
             )
-        }
+        };
+
+        // Secure cleanup of key material in memory
+        key_0.zeroize();
+        nonce_0.zeroize();
+        key_1.zeroize();
+        nonce_1.zeroize();
+
+        result
     }
 
     fn try_decrypt(
@@ -219,8 +244,9 @@ impl Container {
         ciphertext: &[u8],
         aad: &[u8],
     ) -> Option<VolumeDescriptor> {
-        let plaintext = aead::decrypt(key, nonce, ciphertext, aad).ok()?;
+        let mut plaintext = aead::decrypt(key, nonce, ciphertext, aad).ok()?;
         if plaintext.len() < 4 {
+            plaintext.zeroize();
             return None;
         }
 
@@ -229,10 +255,13 @@ impl Container {
         let len = u32::from_be_bytes(len_bytes) as usize;
 
         if 4 + len > plaintext.len() {
+            plaintext.zeroize();
             return None;
         }
 
-        serde_json::from_slice::<VolumeDescriptor>(&plaintext[4..4 + len]).ok()
+        let desc = serde_json::from_slice::<VolumeDescriptor>(&plaintext[4..4 + len]).ok();
+        plaintext.zeroize();
+        desc
     }
 
     fn generate_synthetic(seed_material: &[u8; 32]) -> VolumeDescriptor {

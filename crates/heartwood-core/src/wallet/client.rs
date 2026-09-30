@@ -1,5 +1,5 @@
 use crate::crypto::entropy;
-use crate::error::Result;
+use crate::error::{HeartwoodError, Result};
 use crate::keystore::container::{
     Container, DistressConfig, DistressMode, UnlockMetrics, VolumeDescriptor,
 };
@@ -25,6 +25,18 @@ impl HeartwoodWallet {
         trusted_contact_address: &str,
         trusted_contact_ivk: &str,
     ) -> Result<(Self, VolumeDescriptor, VolumeDescriptor)> {
+        if pin_primary == pin_decoy {
+            return Err(HeartwoodError::Keystore(
+                "Primary PIN and Decoy PIN must be distinct to prevent volume collision".into(),
+            ));
+        }
+
+        if pin_primary.trim().is_empty() || pin_decoy.trim().is_empty() {
+            return Err(HeartwoodError::Keystore(
+                "PIN credentials must not be empty".into(),
+            ));
+        }
+
         let mut container = Container::new();
 
         // 1. Generate independent BIP-39 mnemonic & seed for Primary Volume (Seed A)

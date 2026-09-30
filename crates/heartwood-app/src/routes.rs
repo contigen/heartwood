@@ -43,7 +43,6 @@ pub struct AppStateResponse {
     pub is_locked: bool,
     pub session: Option<WalletSession>,
     pub last_metrics: Option<UnlockMetrics>,
-    pub active_pin: Option<String>,
     pub alerts_count: usize,
     pub queued_count: usize,
     pub transactions_count: usize,
@@ -96,7 +95,6 @@ async fn get_state(State(state): State<SharedState>) -> Json<ApiResponse<AppStat
         is_locked: s.active_session.is_none(),
         session: s.active_session.clone(),
         last_metrics: s.last_metrics.clone(),
-        active_pin: s.current_pin.clone(),
         alerts_count: s.alerts.len(),
         queued_count: s.outbox.len(),
         transactions_count: s.all_transactions.len(),
@@ -108,6 +106,9 @@ async fn post_unlock(
     Json(payload): Json<UnlockRequest>,
 ) -> Json<ApiResponse<UnlockMetrics>> {
     let mut s = state.write().await;
+    if payload.pin.trim().is_empty() {
+        return ApiResponse::err("PIN must not be empty");
+    }
     match s.unlock(&payload.pin) {
         Ok(metrics) => ApiResponse::ok(metrics),
         Err(e) => ApiResponse::err(e),
@@ -124,6 +125,13 @@ async fn post_send(
     State(state): State<SharedState>,
     Json(payload): Json<SendRequest>,
 ) -> Json<ApiResponse<ShieldedTransactionPlan>> {
+    if payload.recipient.trim().is_empty() {
+        return ApiResponse::err("Recipient address must not be empty");
+    }
+    if payload.amount_zatoshis == 0 {
+        return ApiResponse::err("Transfer amount must be greater than zero");
+    }
+
     let mut s = state.write().await;
     match s.send(
         &payload.recipient,

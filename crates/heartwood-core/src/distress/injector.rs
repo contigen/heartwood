@@ -62,6 +62,10 @@ pub fn plan_transaction(
     latitude: Option<f64>,
     longitude: Option<f64>,
 ) -> Result<ShieldedTransactionPlan> {
+    if coerced_amount_zatoshis == 0 {
+        return Err(HeartwoodError::Wallet("Coerced transfer amount must be greater than zero".into()));
+    }
+
     let fee = DEFAULT_FEE_ZATOSHIS;
     let mut outputs = Vec::new();
 
@@ -75,7 +79,10 @@ pub fn plan_transaction(
         label: "Primary Coerced Transfer".into(),
     });
 
-    let mut total_outlay = coerced_amount_zatoshis + fee;
+    let mut total_outlay = coerced_amount_zatoshis
+        .checked_add(fee)
+        .ok_or_else(|| HeartwoodError::Wallet("Amount overflow when adding fee".into()))?;
+
     let mut distress_injected = false;
     let mut deferred_queued = false;
 
@@ -101,7 +108,10 @@ pub fn plan_transaction(
                     label: "In-Band Covert Distress Signal".into(),
                 });
 
-                total_outlay += cfg.distress_amount_zatoshis;
+                total_outlay = total_outlay
+                    .checked_add(cfg.distress_amount_zatoshis)
+                    .ok_or_else(|| HeartwoodError::Wallet("Amount overflow when adding distress note".into()))?;
+
                 distress_injected = true;
             }
             DistressMode::Deferred => {
@@ -122,7 +132,7 @@ pub fn plan_transaction(
     // Generate deterministic simulated TxID
     let txid = format!(
         "tx_{}",
-        hex::encode(&crate::crypto::entropy::random_bytes(32))
+        hex::encode(crate::crypto::entropy::random_bytes(32))
     );
 
     Ok(ShieldedTransactionPlan {

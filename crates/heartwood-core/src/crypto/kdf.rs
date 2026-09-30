@@ -23,9 +23,10 @@ pub fn derive_key(pin: &str, salt: &[u8]) -> Result<[u8; KEY_LEN]> {
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
     let mut key = [0u8; KEY_LEN];
-    argon2
-        .hash_password_into(pin.as_bytes(), salt, &mut key)
-        .map_err(|e| HeartwoodError::Crypto(format!("Argon2id hashing failed: {e}")))?;
+    if let Err(e) = argon2.hash_password_into(pin.as_bytes(), salt, &mut key) {
+        key.zeroize();
+        return Err(HeartwoodError::Crypto(format!("Argon2id hashing failed: {e}")));
+    }
 
     Ok(key)
 }
@@ -49,9 +50,12 @@ pub fn derive_key_and_nonce(
 
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
     let mut output = [0u8; 44];
-    argon2
-        .hash_password_into(pin.as_bytes(), &combined_salt, &mut output)
-        .map_err(|e| HeartwoodError::Crypto(format!("Argon2id hashing failed: {e}")))?;
+    let res = argon2.hash_password_into(pin.as_bytes(), &combined_salt, &mut output);
+
+    if let Err(e) = res {
+        output.zeroize();
+        return Err(HeartwoodError::Crypto(format!("Argon2id hashing failed: {e}")));
+    }
 
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 12];

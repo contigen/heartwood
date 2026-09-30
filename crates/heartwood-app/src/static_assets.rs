@@ -508,6 +508,16 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
     let currentTab = 'wallet';
     let pinBuffer = '';
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
@@ -567,7 +577,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
         statusEl.innerText = '';
         fetchState();
       } catch (e) {
-        statusEl.innerText = 'Unlock failed: ' + e;
+        statusEl.innerText = 'Unlock failed: ' + escapeHtml(e);
       }
     }
 
@@ -668,7 +678,6 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
         if (json.success) {
           fetchState();
           if (json.data.silent_distress_injected) {
-            // Flash notification of covert beacon injection
             console.log('Covert distress signal injected into shielded transaction.');
           }
         } else {
@@ -705,14 +714,14 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       list.innerHTML = txs.slice().reverse().map(tx => `
         <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5 text-xs">
           <div class="flex justify-between items-center">
-            <span class="mono text-emerald-400 font-semibold">${tx.txid.substring(0, 18)}...</span>
-            <span class="text-slate-500">${new Date(tx.created_at * 1000).toLocaleTimeString()}</span>
+            <span class="mono text-emerald-400 font-semibold">${escapeHtml(tx.txid.substring(0, 18))}...</span>
+            <span class="text-slate-500">${escapeHtml(new Date(tx.created_at * 1000).toLocaleTimeString())}</span>
           </div>
           <div class="flex justify-between text-slate-300">
             <span>Sent: ${(tx.outputs[0].amount_zatoshis / 100000000).toFixed(4)} ZEC</span>
             <span>Fee: 0.0001 ZEC</span>
           </div>
-          <div class="text-[11px] text-slate-500 mono truncate">To: ${tx.outputs[0].recipient_address}</div>
+          <div class="text-[11px] text-slate-500 mono truncate">To: ${escapeHtml(tx.outputs[0].recipient_address)}</div>
           ${tx.silent_distress_injected ? '<div class="text-[10px] text-red-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-satellite-dish"></i> Covert distress note included in-band</div>' : ''}
         </div>
       `).join('');
@@ -741,17 +750,17 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-red-800/40 pb-2">
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 rounded bg-red-600 text-white font-bold text-xs uppercase tracking-wider">
-                <i class="fa-solid fa-triangle-exclamation mr-1"></i> ${a.beacon.distress_type}
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> ${escapeHtml(a.beacon.distress_type)}
               </span>
-              <span class="mono text-xs text-slate-300">${a.txid.substring(0, 20)}...</span>
+              <span class="mono text-xs text-slate-300">${escapeHtml(a.txid.substring(0, 20))}...</span>
             </div>
-            <span class="text-xs text-red-300 font-mono">${new Date(a.detected_at * 1000).toLocaleString()}</span>
+            <span class="text-xs text-red-300 font-mono">${escapeHtml(new Date(a.detected_at * 1000).toLocaleString())}</span>
           </div>
 
           <div class="space-y-1.5 text-xs text-slate-300">
-            <div class="font-semibold text-red-200 text-sm">${a.beacon.alert_message}</div>
+            <div class="font-semibold text-red-200 text-sm">${escapeHtml(a.beacon.alert_message)}</div>
             <div class="grid grid-cols-2 gap-2 text-slate-400 mono text-[11px]">
-              <div>Coerced Recipient: <span class="text-slate-200 block truncate">${a.beacon.coerced_recipient || 'N/A'}</span></div>
+              <div>Coerced Recipient: <span class="text-slate-200 block truncate">${escapeHtml(a.beacon.coerced_recipient || 'N/A')}</span></div>
               <div>Coerced Amount: <span class="text-slate-200 font-bold block">${((a.beacon.coerced_amount_zatoshis || 0) / 100000000).toFixed(4)} ZEC</span></div>
             </div>
             ${a.beacon.latitude ? `
@@ -778,8 +787,8 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       list.innerHTML = txs.slice().reverse().map(tx => `
         <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
           <div class="flex justify-between items-center text-xs">
-            <span class="mono text-emerald-400 font-bold">TXID: ${tx.txid}</span>
-            <span class="text-slate-400">${new Date(tx.created_at * 1000).toLocaleTimeString()}</span>
+            <span class="mono text-emerald-400 font-bold">TXID: ${escapeHtml(tx.txid)}</span>
+            <span class="text-slate-400">${escapeHtml(new Date(tx.created_at * 1000).toLocaleTimeString())}</span>
           </div>
 
           <div class="space-y-2">
@@ -834,8 +843,8 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       list.innerHTML = samples.slice().reverse().map(s => `
         <div class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 flex justify-between items-center text-xs">
           <div>
-            <span class="font-semibold text-slate-200">${s.label}</span>
-            <span class="text-slate-500 mono text-[11px] ml-1">(${s.pin})</span>
+            <span class="font-semibold text-slate-200">${escapeHtml(s.label)}</span>
+            <span class="text-slate-500 mono text-[11px] ml-1">(${escapeHtml(s.pin)})</span>
           </div>
           <div class="mono font-bold text-emerald-400">
             ${s.elapsed_ms} ms
@@ -855,7 +864,6 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
       document.getElementById('audit-deniable').innerText = r.zero_knowledge_deniable ? 'TRUE (CONFIRMED)' : 'FALSE';
     }
 
-    // Demo script runner
     function logDemo(msg) {
       const log = document.getElementById('demo-log');
       log.innerHTML += `<div>> ${msg}</div>`;

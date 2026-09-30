@@ -17,13 +17,19 @@ pub struct DeferredQueue {
     items: Vec<QueuedDistressItem>,
 }
 
+impl Default for DeferredQueue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DeferredQueue {
     pub fn new() -> Self {
         Self { items: Vec::new() }
     }
 
     pub fn enqueue(&mut self, beacon: DistressBeacon) -> String {
-        let id = format!("queue_{}", hex::encode(&entropy::random_bytes(8)));
+        let id = format!("queue_{}", hex::encode(entropy::random_bytes(8)));
         self.items.push(QueuedDistressItem {
             id: id.clone(),
             beacon,
@@ -55,28 +61,23 @@ impl DeferredQueue {
 
         for item in items {
             let memo = item.beacon.encode_to_memo()?;
-            let mut outputs = Vec::new();
 
             // Covert standalone beacon transfer to trusted contact
-            outputs.push(crate::distress::injector::ShieldedOutput {
+            let outputs = vec![crate::distress::injector::ShieldedOutput {
                 recipient_address: distress_config.trusted_contact_address.clone(),
                 amount_zatoshis: distress_config.distress_amount_zatoshis,
                 memo,
                 is_distress_beacon: true,
                 label: "Deferred Outbox Covert Distress Broadcast".into(),
-            });
+            }];
 
             let fee = crate::distress::injector::DEFAULT_FEE_ZATOSHIS;
             let total = distress_config.distress_amount_zatoshis + fee;
-            let change = if sender_balance >= total {
-                sender_balance - total
-            } else {
-                0
-            };
+            let change = sender_balance.saturating_sub(total);
 
             let txid = format!(
                 "tx_def_{}",
-                hex::encode(&crate::crypto::entropy::random_bytes(32))
+                hex::encode(crate::crypto::entropy::random_bytes(32))
             );
 
             plans.push(ShieldedTransactionPlan {
