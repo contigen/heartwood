@@ -1,4 +1,18 @@
+# Rust
 target/
 **/*.rs.bk
 *.log
+
+# Node & Next.js
+node_modules/
+web/node_modules/
+.next/
+web/.next/
+web/out/
+.turbo/
+web/.turbo/
+
+# OS & Local configs
 .DS_Store
+.cargo/certs.pem
+*.tsbuildinfo

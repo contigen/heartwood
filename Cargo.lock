@@ -998,8 +998,10 @@ dependencies = [
  "subtle",
  "tempfile",
  "thiserror 2.0.21",
+ "zcash_address",
  "zcash_keys",
  "zcash_primitives",
+ "zcash_protocol",
  "zeroize",
  "zip32",
 ]
