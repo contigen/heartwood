@@ -1,16 +1,6 @@
 # Zecathon Submission: Heartwood
 
-## Form Submission Details
-
-- **Project Name**: Heartwood: Duress-Aware Shielded Zcash Wallet
-- **Track**: Wildcard ($15,000 track prize, grand prize eligible)
-- **Working Demo URL**: [https://heartwood-aware.vercel.app](https://heartwood-aware.vercel.app)
-- **Code Repository**: [https://github.com/](https://github.com/) (your repository link)
-- **Demo Video**: (your 2-minute Loom or YouTube walkthrough link)
-
----
-
-## Submission Form Description (1,897 / 2,000 characters)
+## Form Description
 
 ```text
 Heartwood is a duress-aware shielded Zcash wallet with a hidden-volume dual identity and in-band emergency distress signaling.
@@ -37,6 +27,7 @@ ON-CHAIN IMPLEMENTATION
 ## Detailed Evaluation Against Judging Criteria
 
 ### 1. Privacy (Zero Leaks)
+
 - **Zero local metadata leaks**: The keystore is a fixed 64 KiB binary container. There are no volume headers, magic signatures, or partition tables.
 - **Independence proof**: Seed B (decoy) has provably zero information-theoretic dependence on Seed A or any data revealed by decrypting with PIN A.
 - **Identical code paths**: Both PIN A and PIN B run the exact same twin-pass Argon2id KDF pipeline.
@@ -45,12 +36,14 @@ ON-CHAIN IMPLEMENTATION
 - **On-chain indistinguishability**: To any outside observer or coercer, Output 0 (the payment) and Output 1 (the distress alert) are identical 580-byte shielded note ciphertexts padded to a standard 3-action Orchard bundle.
 
 ### 2. Usefulness
+
 - **Physical robbery and device extortion**: When forced to unlock a wallet, handing over an empty wallet invites retaliation. Heartwood provides a real, funded decoy account with spendable funds.
 - **Domestic coercion**: Victims of coercive control can maintain primary savings in Volume A while demonstrating obedience with Volume B.
 - **Border and customs inspections**: Device searches uncover a functional wallet with unremarkable everyday activity.
 - **Immediate and deferred options**: Users can select immediate in-band transmission or deferred outbox queueing to prevent network detection while supervised.
 
 ### 3. Execution
+
 - **Full Rust core**: Modular crate containing Argon2id KDF, ChaCha20-Poly1305 AEAD, ZIP-32 shielded key derivation, 512-byte memo beacon encoder/decoder, multi-output transaction planner, deferred queue manager, and viewing key scanner.
 - **Automated test suite**:
   - `tests/independence_test.rs`: Mathematical isolation and zero cross-references.
@@ -60,6 +53,7 @@ ON-CHAIN IMPLEMENTATION
 - **Interactive web dashboard**: Live at [https://heartwood-aware.vercel.app](https://heartwood-aware.vercel.app). Includes Send, Receive with SVG QR codes, Testnet faucet deposit, Guardian Monitor, Wire block inspector, and Coercer Stealth mode.
 
 ### 4. Originality
+
 Hidden volumes (TrueCrypt/VeraCrypt) and duress PINs exist in disk encryption, but this architecture has never before been combined with Zcash shielded transactions. The in-band distress note delivery uses the coerced payment itself as cover to route an emergency alert through the 512-byte shielded memo field directly to an emergency viewing key.
 
 ---
