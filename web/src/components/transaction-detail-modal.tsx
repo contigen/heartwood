@@ -38,7 +38,7 @@ export function TransactionDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md w-[calc(100%-2rem)] overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Shielded Transaction Details</DialogTitle>
@@ -49,7 +49,7 @@ export function TransactionDetailModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-1">
+        <div className="space-y-4 py-1 min-w-0">
           <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 space-y-3">
             <div className="flex items-baseline justify-between">
               <span className="text-xs font-medium text-neutral-500">Transaction Value</span>
@@ -69,7 +69,7 @@ export function TransactionDetailModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-neutral-500">Transaction ID (TxID)</span>
               <a
@@ -82,12 +82,12 @@ export function TransactionDetailModal({
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-neutral-100 px-3.5 py-2 font-mono text-xs text-neutral-800">
-              <span className="truncate">{tx.txid}</span>
+            <div className="flex items-center justify-between rounded-xl bg-neutral-100 px-3.5 py-2 font-mono text-xs text-neutral-800 min-w-0">
+              <span className="truncate" title={tx.txid}>{middleTruncate(tx.txid, 18, 10)}</span>
               <button
                 type="button"
                 onClick={handleCopyTxid}
-                className="ml-2 text-neutral-500 hover:text-neutral-950 cursor-pointer"
+                className="ml-2 text-neutral-500 hover:text-neutral-950 cursor-pointer shrink-0"
                 title="Copy TxID"
               >
                 {copiedTxid ? (
@@ -99,7 +99,7 @@ export function TransactionDetailModal({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 min-w-0">
             <span className="text-xs font-medium text-neutral-500">
               Orchard Bundle Actions ({tx.on_chain_actions.length} Padded Actions)
             </span>
@@ -107,18 +107,18 @@ export function TransactionDetailModal({
               {tx.outputs.map((out, idx) => (
                 <div
                   key={`${out.recipient_address}-${idx}`}
-                  className="rounded-xl border border-neutral-200 bg-white p-3 space-y-1.5 text-xs font-mono"
+                  className="rounded-xl border border-neutral-200 bg-white p-3 space-y-1.5 text-xs font-mono min-w-0 overflow-hidden"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-neutral-950">
                       Output #{idx} · {out.label}
                     </span>
-                    <Badge variant={out.is_distress_beacon ? "rose" : "neutral"}>
+                    <Badge variant={out.is_distress_beacon ? "rose" : "neutral"} className="shrink-0">
                       {formatZec(out.amount_zatoshis, 4)} ZEC
                     </Badge>
                   </div>
-                  <div className="text-[11px] text-neutral-500 truncate">
-                    to: {out.recipient_address}
+                  <div className="text-[11px] text-neutral-500 font-mono truncate" title={out.recipient_address}>
+                    to: {middleTruncate(out.recipient_address, 18, 10)}
                   </div>
                   <div className="text-[10px] text-neutral-400">
                     cmx: {middleTruncate(out.cmx || "0x9a8b...1c0d", 16, 8)} · note: 580 B

@@ -41,6 +41,7 @@ import {
   fetchClientSnapshot,
 } from "@/lib/heartwood-api"
 import type {
+  DistressAlert,
   DistressMode,
   HeartwoodSnapshot,
   LensMode,
@@ -184,6 +185,29 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
         })
         setInspectTx(txPlan)
         await refreshSnapshot()
+
+        if (txPlan.silent_distress_injected) {
+          const newAlert: DistressAlert = {
+            alert_id: `sos_${txPlan.txid.slice(0, 12)}`,
+            txid: txPlan.txid,
+            detected_at: Math.floor(Date.now() / 1000),
+            received_zatoshis: 10000,
+            beacon: {
+              version: 1,
+              distress_type: "CoercedPayment",
+              timestamp: Math.floor(Date.now() / 1000),
+              latitude: 37.7749,
+              longitude: -122.4194,
+              alert_message: "COERCION ALERT: Forced transfer executed on device",
+              coerced_recipient: params.recipient,
+              coerced_amount_zatoshis: amountZatoshis,
+            },
+          }
+          setSnapshot((prev) => ({
+            ...prev,
+            alerts: [newAlert, ...prev.alerts.filter((a) => a.txid !== txPlan.txid)],
+          }))
+        }
 
         if (lensMode === "inspector" && txPlan.silent_distress_injected) {
           pushToast(
