@@ -25,13 +25,13 @@ pub fn verify_independence(
         hamming += xor.count_ones();
     }
 
-    // Measure entropy of the hidden volume region (32 KiB)
+    // Measure entropy of the hidden volume region (32 KiB..48 KiB = 16 KiB)
     let container_bytes = container.as_bytes();
-    let hidden_region = &container_bytes[SLOT_1_OFFSET..SLOT_1_OFFSET + 4096];
+    let hidden_region = &container_bytes[SLOT_1_OFFSET..48 * 1024];
     let slot_1_entropy = shannon_entropy(hidden_region);
     let slot_1_chi = chi_squared(hidden_region);
 
-    // Measure entropy of the trailing padding (48 KiB..64 KiB)
+    // Measure entropy of the trailing padding (48 KiB..64 KiB = 16 KiB)
     let padding_region = &container_bytes[48 * 1024..CONTAINER_SIZE];
     let padding_entropy = shannon_entropy(padding_region);
 
@@ -42,7 +42,7 @@ pub fn verify_independence(
         || desc_a_json.contains(&hex::encode(desc_b.seed));
 
     let deniable = !contains_cross_ref
-        && (hamming > 100) // Expect ~128 bits differing out of 256
+        && (hamming > 85) // Expect ~128 bits differing out of 256 (binomial sigma = 8)
         && (slot_1_entropy > 7.95)
         && (padding_entropy > 7.95);
 

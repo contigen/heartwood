@@ -75,6 +75,16 @@ impl WalletSession {
         }
     }
 
+    /// Explicitly sets the distress beacon mode (Immediate or Deferred).
+    pub fn set_distress_mode(&mut self, mode: DistressMode) -> Option<DistressMode> {
+        if let Some(ref mut cfg) = self.distress_config {
+            cfg.mode = mode;
+            Some(cfg.mode)
+        } else {
+            None
+        }
+    }
+
     /// Checks whether this session has an active covert distress mechanism configured.
     pub fn has_distress_config(&self) -> bool {
         self.distress_config.is_some()
