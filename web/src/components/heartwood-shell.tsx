@@ -659,42 +659,39 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div
-              className="inline-flex items-center rounded-full bg-neutral-100 p-0.5 text-xs"
-              title="Toggle Coercer Stealth mode to see what a watching coercer sees"
-            >
-              <button
-                type="button"
-                onClick={() => setLensMode("inspector")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition cursor-pointer",
-                  lensMode === "inspector"
-                    ? "bg-white text-neutral-950 shadow-2xs"
-                    : "text-neutral-500 hover:text-neutral-900"
-                )}
+            {!isStealth ? (
+              <div
+                className="inline-flex items-center rounded-full bg-neutral-100 p-0.5 text-xs"
+                title="Toggle between Auditor Analysis Mode and True Stealth Mode"
               >
-                <Eye className="h-3.5 w-3.5" />
-                Inspector
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLensMode("stealth")
-                  if (activeTab !== "wallet" && activeTab !== "contacts") {
-                    setActiveTab("wallet")
-                  }
-                }}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition cursor-pointer",
-                  lensMode === "stealth"
-                    ? "bg-white text-neutral-950 shadow-2xs"
-                    : "text-neutral-500 hover:text-neutral-900"
-                )}
-              >
-                <EyeOff className="h-3.5 w-3.5" />
-                Coercer View
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setLensMode("inspector")}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition cursor-pointer",
+                    lensMode === "inspector"
+                      ? "bg-white text-neutral-950 shadow-2xs"
+                      : "text-neutral-500 hover:text-neutral-900"
+                  )}
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  Auditor Lens
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLensMode("stealth")
+                    if (activeTab !== "wallet" && activeTab !== "contacts") {
+                      setActiveTab("wallet")
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium text-neutral-500 hover:text-neutral-900 transition cursor-pointer"
+                >
+                  <EyeOff className="h-3.5 w-3.5" />
+                  Test Stealth Mode
+                </button>
+              </div>
+            ) : null}
 
             {!snapshot.state.is_locked && (
               <Button
@@ -895,20 +892,32 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
             Heartwood · Shielded Zcash Keystore with In-Band Distress Signaling
           </div>
           <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => void handleResetDemo()}
-              className="hover:text-neutral-900 cursor-pointer"
-            >
-              Reset State
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowToolkit(!showToolkit)}
-              className="hover:text-neutral-900 cursor-pointer"
-            >
-              {showToolkit ? "Hide Toolkit" : "Judge Toolkit"}
-            </button>
+            {isStealth ? (
+              <button
+                type="button"
+                onClick={() => setLensMode("inspector")}
+                className="text-neutral-500 hover:text-neutral-900 cursor-pointer font-medium"
+              >
+                Exit Stealth (Auditor Lens)
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => void handleResetDemo()}
+                  className="hover:text-neutral-900 cursor-pointer"
+                >
+                  Reset State
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowToolkit(!showToolkit)}
+                  className="hover:text-neutral-900 cursor-pointer"
+                >
+                  {showToolkit ? "Hide Toolkit" : "Judge Toolkit"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </footer>
