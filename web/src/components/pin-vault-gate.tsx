@@ -22,20 +22,20 @@ const TESTING_PRESETS = [
   {
     pin: "2468",
     title: "Primary Vault (Real Savings)",
-    balance: "142.50 ZEC",
+    balance: "14.25 ZEC",
     detail: "Slot 0 · Real savings, zero distress traces.",
   },
   {
     pin: "1357",
-    title: "Duress Decoy Vault",
+    title: "Duress Decoy Vault (1357 / 1337)",
     balance: "1.25 ZEC",
     detail: "Slot 1 · Plausible spendable decoy with silent SOS.",
   },
   {
     pin: "0000",
-    title: "Any Other PIN",
+    title: "Any Other PIN (e.g. 0000)",
     balance: "0.00 ZEC",
-    detail: "Synthetic · Plausible zero-balance, no error oracle.",
+    detail: "Zero-Oracle Defense · Derives ephemeral empty wallet.",
   },
 ]
 
@@ -47,7 +47,7 @@ export function PinVaultGate({
   overallEntropy,
 }: PinVaultGateProps) {
   const [pin, setPin] = React.useState("")
-  const [showDevShortcuts, setShowDevShortcuts] = React.useState(false)
+  const [showDevShortcuts, setShowDevShortcuts] = React.useState(true)
 
   const handleDigit = React.useCallback(
     (digit: string) => {

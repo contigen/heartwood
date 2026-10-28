@@ -91,6 +91,12 @@ export function WalletWorkspace({
               {session.account_name}
             </span>
             <Badge variant="sky">Orchard Pool</Badge>
+            {session.is_synthetic && (
+              <Badge variant="amber" className="gap-1">
+                <Shield className="h-3 w-3" />
+                Zero-Oracle Defense Active
+              </Badge>
+            )}
             {showInspector && distressConfig && (
               <Badge variant="rose" className="gap-1">
                 <Radio className="h-3 w-3" />
@@ -113,6 +119,18 @@ export function WalletWorkspace({
             )}
           </button>
         </div>
+
+        {session.is_synthetic && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-950 space-y-1">
+            <div className="font-semibold flex items-center gap-1.5">
+              <Shield className="h-4 w-4 text-amber-700" />
+              Zero-Oracle Immunity Verification
+            </div>
+            <p className="text-neutral-600 leading-relaxed">
+              An unregistered PIN was entered. Instead of returning an error or MAC failure, Heartwood evaluated both Argon2id slots in constant time and derived this ephemeral zero-balance wallet. A coercer cannot tell whether the PIN exists.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-1">
           <div className="text-xs font-medium uppercase tracking-wider text-neutral-400">
