@@ -4,7 +4,7 @@
 
 - **Project Name**: Heartwood: Duress-Aware Shielded Zcash Wallet
 - **Track**: Wildcard ($15,000 track prize, grand prize eligible)
-- **Working Demo URL**: [https://web-three-tawny-juip8wct94.vercel.app](https://web-three-tawny-juip8wct94.vercel.app)
+- **Working Demo URL**: [https://heartwood-aware.vercel.app](https://heartwood-aware.vercel.app)
 - **Code Repository**: [https://github.com/](https://github.com/) (your repository link)
 - **Demo Video**: (your 2-minute Loom or YouTube walkthrough link)
 
@@ -54,7 +54,7 @@ WHAT IS REAL AND WHAT IS A MOCK
   - `tests/constant_time_test.rs`: Timing equivalence across valid and invalid PINs.
   - `tests/multi_output_test.rs`: Multi-output note construction and viewing key recovery.
   - `tests/deferred_broadcast_test.rs`: Encrypted persistence and unsupervised outbox draining.
-- **Interactive web dashboard**: Live at [https://web-three-tawny-juip8wct94.vercel.app](https://web-three-tawny-juip8wct94.vercel.app). Includes Send, Receive with SVG QR codes, Faucet deposit simulator, Guardian Monitor, Wire block inspector, and Coercer Stealth mode.
+- **Interactive web dashboard**: Live at [https://heartwood-aware.vercel.app](https://heartwood-aware.vercel.app). Includes Send, Receive with SVG QR codes, Faucet deposit simulator, Guardian Monitor, Wire block inspector, and Coercer Stealth mode.
 
 ### 4. Originality
 Hidden volumes (TrueCrypt/VeraCrypt) and duress PINs exist in disk encryption, but this architecture has never before been combined with Zcash shielded transactions. The in-band distress note delivery uses the coerced payment itself as cover to route an emergency alert through the 512-byte shielded memo field directly to an emergency viewing key.

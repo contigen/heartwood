@@ -1,6 +1,6 @@
 # Heartwood: Duress-Aware Shielded Zcash Wallet
 
-Live web deployment: [https://web-three-tawny-juip8wct94.vercel.app](https://web-three-tawny-juip8wct94.vercel.app)
+Live web deployment: [https://heartwood-aware.vercel.app](https://heartwood-aware.vercel.app)
 
 Heartwood is a shielded Zcash wallet designed for physical coercion, device inspection, and extortion scenarios. It hides a second wallet identity inside local storage using deniable encryption. 
 
@@ -41,7 +41,7 @@ If active network traffic during the incident creates personal risk, the distres
 ## Quickstart
 
 ### Option 1: Live deployment
-Open [https://web-three-tawny-juip8wct94.vercel.app](https://web-three-tawny-juip8wct94.vercel.app) in any browser.
+Open [https://heartwood-aware.vercel.app](https://heartwood-aware.vercel.app) in any browser.
 
 ### Option 2: Local development
 
