@@ -70,7 +70,18 @@ export function TransactionDetailModal({
           </div>
 
           <div className="space-y-1.5">
-            <span className="text-xs font-medium text-neutral-500">Transaction ID (TxID)</span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-neutral-500">Transaction ID (TxID)</span>
+              <a
+                href={`https://sochain.com/tx/ZECTEST/${tx.txid}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-neutral-600 hover:text-neutral-950 transition"
+              >
+                <span>View on Explorer</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
             <div className="flex items-center justify-between rounded-xl bg-neutral-100 px-3.5 py-2 font-mono text-xs text-neutral-800">
               <span className="truncate">{tx.txid}</span>
               <button
