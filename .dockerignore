@@ -1,0 +1,6 @@
+target/
+web/
+.git/
+docs/
+*.tsbuildinfo
+.DS_Store
