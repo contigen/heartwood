@@ -6,9 +6,12 @@ use axum::{
     Router,
 };
 use heartwood_core::crypto::entropy::{chi_squared, shannon_entropy};
+use heartwood_core::distress::deferred::QueuedDistressItem;
 use heartwood_core::distress::injector::ShieldedTransactionPlan;
 use heartwood_core::distress::scanner::DistressAlert;
-use heartwood_core::keystore::container::{DistressMode, UnlockMetrics, CONTAINER_SIZE, SLOT_1_OFFSET};
+use heartwood_core::keystore::container::{
+    DistressMode, UnlockMetrics, CONTAINER_SIZE, SLOT_1_OFFSET,
+};
 use heartwood_core::keystore::independence::IndependenceReport;
 use heartwood_core::wallet::account::WalletSession;
 use serde::{Deserialize, Serialize};
@@ -45,7 +48,10 @@ pub struct AppStateResponse {
     pub last_metrics: Option<UnlockMetrics>,
     pub alerts_count: usize,
     pub queued_count: usize,
+    pub queued_items: Vec<QueuedDistressItem>,
     pub transactions_count: usize,
+    pub contact_address: String,
+    pub contact_ivk: String,
 }
 
 #[derive(Deserialize)]
@@ -59,6 +65,26 @@ pub struct SendRequest {
     pub amount_zatoshis: u64,
     pub latitude: Option<f64>,
     pub longitude: Option<f64>,
+}
+
+#[derive(Deserialize)]
+pub struct SetModeRequest {
+    pub mode: DistressMode,
+}
+
+#[derive(Deserialize)]
+pub struct ReceiveRequest {
+    pub amount_zatoshis: u64,
+    pub sender_label: Option<String>,
+    pub memo_text: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct ConfigureDistressRequest {
+    pub trusted_contact_address: String,
+    pub default_message: String,
+    pub mode: DistressMode,
+    pub distress_amount_zatoshis: Option<u64>,
 }
 
 #[derive(Serialize)]
@@ -79,6 +105,9 @@ pub fn api_router(state: SharedState) -> Router {
         .route("/api/lock", post(post_lock))
         .route("/api/send", post(post_send))
         .route("/api/toggle-mode", post(post_toggle_mode))
+        .route("/api/set-mode", post(post_set_mode))
+        .route("/api/receive", post(post_receive))
+        .route("/api/configure-distress", post(post_configure_distress))
         .route("/api/trigger-deferred", post(post_trigger_deferred))
         .route("/api/alerts", get(get_alerts))
         .route("/api/transactions", get(get_transactions))
@@ -97,7 +126,10 @@ async fn get_state(State(state): State<SharedState>) -> Json<ApiResponse<AppStat
         last_metrics: s.last_metrics.clone(),
         alerts_count: s.alerts.len(),
         queued_count: s.outbox.len(),
+        queued_items: s.queued_items(),
         transactions_count: s.all_transactions.len(),
+        contact_address: s.contact_address.clone(),
+        contact_ivk: s.contact_ivk.clone(),
     })
 }
 
@@ -152,6 +184,44 @@ async fn post_toggle_mode(State(state): State<SharedState>) -> Json<ApiResponse<
     }
 }
 
+async fn post_set_mode(
+    State(state): State<SharedState>,
+    Json(payload): Json<SetModeRequest>,
+) -> Json<ApiResponse<DistressMode>> {
+    let mut s = state.write().await;
+    match s.set_mode(payload.mode) {
+        Ok(mode) => ApiResponse::ok(mode),
+        Err(e) => ApiResponse::err(e),
+    }
+}
+
+async fn post_receive(
+    State(state): State<SharedState>,
+    Json(payload): Json<ReceiveRequest>,
+) -> Json<ApiResponse<ShieldedTransactionPlan>> {
+    let mut s = state.write().await;
+    match s.receive(payload.amount_zatoshis, payload.sender_label, payload.memo_text) {
+        Ok(plan) => ApiResponse::ok(plan),
+        Err(e) => ApiResponse::err(e),
+    }
+}
+
+async fn post_configure_distress(
+    State(state): State<SharedState>,
+    Json(payload): Json<ConfigureDistressRequest>,
+) -> Json<ApiResponse<heartwood_core::keystore::container::DistressConfig>> {
+    let mut s = state.write().await;
+    match s.configure_distress(
+        payload.trusted_contact_address,
+        payload.default_message,
+        payload.mode,
+        payload.distress_amount_zatoshis,
+    ) {
+        Ok(config) => ApiResponse::ok(config),
+        Err(e) => ApiResponse::err(e),
+    }
+}
+
 async fn post_trigger_deferred(
     State(state): State<SharedState>,
 ) -> Json<ApiResponse<Vec<ShieldedTransactionPlan>>> {
@@ -184,8 +254,8 @@ async fn get_entropy(
     let overall_ent = shannon_entropy(bytes);
     let overall_chi = chi_squared(bytes);
 
-    let slot_0 = &bytes[0..4096];
-    let slot_1 = &bytes[SLOT_1_OFFSET..SLOT_1_OFFSET + 4096];
+    let slot_0 = &bytes[0..16 * 1024];
+    let slot_1 = &bytes[SLOT_1_OFFSET..48 * 1024];
     let padding = &bytes[48 * 1024..CONTAINER_SIZE];
 
     let mut preview_hex_chunks = Vec::new();
