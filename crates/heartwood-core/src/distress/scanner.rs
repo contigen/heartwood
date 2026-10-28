@@ -33,20 +33,23 @@ impl TrustedContactScanner {
     }
 
     /// Scans a shielded transaction plan for outputs matching this trusted contact
-    /// and extracts any embedded distress beacons from the memo.
+    /// using Zcash AEAD trial decryption (`epk` + incoming viewing key) and extracts
+    /// any embedded distress beacons from the decrypted 512-byte memo.
     pub fn scan_transaction(&self, tx: &ShieldedTransactionPlan) -> Vec<DistressAlert> {
         let mut alerts = Vec::new();
 
         for output in &tx.outputs {
-            // Check if output is addressed to this contact
-            if output.recipient_address == self.contact_address {
-                // Attempt to decode the 512-byte memo as a distress beacon
-                if let Ok(Some(beacon)) = DistressBeacon::decode_from_memo(&output.memo) {
+            // Trial-decrypt the shielded output note using our contact key material
+            if let Some((decrypted_amount, decrypted_memo)) =
+                output.trial_decrypt(&self.contact_address)
+            {
+                // Attempt to decode the 512-byte memo as a Heartwood distress beacon
+                if let Ok(Some(beacon)) = DistressBeacon::decode_from_memo(&decrypted_memo) {
                     alerts.push(DistressAlert {
-                        alert_id: format!("sos_{}", hex::encode(&output.memo[10..18])),
+                        alert_id: format!("sos_{}", hex::encode(&decrypted_memo[10..18])),
                         txid: tx.txid.clone(),
                         detected_at: chrono::Utc::now().timestamp(),
-                        received_zatoshis: output.amount_zatoshis,
+                        received_zatoshis: decrypted_amount,
                         beacon,
                     });
                 }

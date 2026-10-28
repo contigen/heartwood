@@ -23,6 +23,10 @@ fn test_in_band_multi_output_distress_and_scanner() {
     let (session_b_res, _) = wallet.unlock(pin_b);
     let mut session_b = session_b_res.expect("PIN B unlock");
     assert!(session_b.has_distress_config());
+    assert!(
+        session_b.unified_address.starts_with("utest1"),
+        "Expected genuine ZIP-316 testnet Unified Address"
+    );
 
     // 2. Perform coerced send: 1.0 ZEC to coercer address
     let coercer_addr = "utest1coercerdestinationaddress112233445566778899";
@@ -33,16 +37,29 @@ fn test_in_band_multi_output_distress_and_scanner() {
 
     assert!(tx_plan.silent_distress_injected);
     assert_eq!(tx_plan.outputs.len(), 2, "Expected coercer output + covert distress output");
+    assert_eq!(
+        tx_plan.on_chain_actions.len(),
+        3,
+        "Expected uniform 3-action Orchard bundle on-chain"
+    );
 
-    // Output 0: Coercer payment
+    // Output 0: Coercer payment (must NOT trial-decrypt under trusted contact key)
     assert_eq!(tx_plan.outputs[0].recipient_address, coercer_addr);
     assert_eq!(tx_plan.outputs[0].amount_zatoshis, coerced_amount);
     assert!(!tx_plan.outputs[0].is_distress_beacon);
+    assert!(
+        tx_plan.outputs[0].trial_decrypt(contact_addr).is_none(),
+        "Coercer output must not trial-decrypt under Trusted Contact key"
+    );
 
-    // Output 1: Covert distress signal
+    // Output 1: Covert distress signal (MUST trial-decrypt under trusted contact key)
     assert_eq!(tx_plan.outputs[1].recipient_address, contact_addr);
     assert_eq!(tx_plan.outputs[1].amount_zatoshis, 10_000);
     assert!(tx_plan.outputs[1].is_distress_beacon);
+    assert!(
+        tx_plan.outputs[1].trial_decrypt(contact_addr).is_some(),
+        "Distress output must authenticate & decrypt under Trusted Contact key"
+    );
 
     // 3. Trusted Contact Scanner verification
     let scanner = TrustedContactScanner::new(contact_addr, contact_ivk);
