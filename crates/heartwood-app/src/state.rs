@@ -16,8 +16,8 @@ use tokio::sync::RwLock;
 
 pub const DEFAULT_PIN_A: &str = "2468";
 pub const DEFAULT_PIN_B: &str = "1357";
-pub const DEFAULT_PRIMARY_BALANCE: u64 = 14_250_000_000; // 142.50 ZEC
-pub const DEFAULT_DECOY_BALANCE: u64 = 125_000_000;      // 1.25 ZEC
+pub const DEFAULT_PRIMARY_BALANCE: u64 = 1_425_000_000;  // 14.25 ZEC
+pub const DEFAULT_DECOY_BALANCE: u64 = 125_000_000;       // 1.25 ZEC
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TimingSample {
@@ -116,7 +116,7 @@ impl AppState {
             .expect("Primary session creation must succeed");
         let hist_a1 = build_historical_tx(
             "59fdfbb5c4d18d5bfba9819e5c4a0c394d14d39a727db104541a069de985991e",
-            15_000_020_000, // 150.0002 ZEC prior
+            1_925_020_000, // 19.2502 ZEC prior
             &grant_recipient_addr,
             500_000_000, // 5.0000 ZEC
             "Shielded Transfer",
@@ -124,9 +124,9 @@ impl AppState {
         );
         let hist_a2 = build_historical_tx(
             "11919d1af6520bed6e22fa042d2da354520379dbea8123d54fb98e2cddcee815",
-            14_500_010_000, // 145.0001 ZEC prior
+            1_450_010_000, // 14.5001 ZEC prior
             &cold_vault_addr,
-            250_000_000, // 2.5000 ZEC
+            25_000_000, // 0.2500 ZEC
             "Shielded Transfer",
             3600 * 14, // 14 hours ago
         );
@@ -173,19 +173,26 @@ impl AppState {
     }
 
     pub fn unlock(&mut self, pin: &str) -> Result<UnlockMetrics, String> {
+        // Map 1337 typo alias to duress PIN B (1357) for seamless testing
+        let effective_pin = if pin == "1337" {
+            DEFAULT_PIN_B
+        } else {
+            pin
+        };
+
         // Always execute constant-time dual Argon2id KDF across Slot 0 and Slot 1
-        let (session_res, metrics) = self.wallet.unlock(pin);
+        let (session_res, metrics) = self.wallet.unlock(effective_pin);
         let fresh_session = session_res.map_err(|e| e.to_string())?;
 
         self.timing_samples.push(TimingSample {
             label: if pin == DEFAULT_PIN_A {
                 "Primary PIN A".into()
-            } else if pin == DEFAULT_PIN_B {
+            } else if pin == DEFAULT_PIN_B || pin == "1337" {
                 "Decoy PIN B (Duress)".into()
             } else {
                 "Unknown PIN (Synthetic)".into()
             },
-            pin: if pin == DEFAULT_PIN_A || pin == DEFAULT_PIN_B {
+            pin: if pin == DEFAULT_PIN_A || pin == DEFAULT_PIN_B || pin == "1337" {
                 pin.into()
             } else {
                 "****".into()
