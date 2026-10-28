@@ -14,7 +14,7 @@ import type {
 } from "@/lib/heartwood-types"
 
 const SERVER_BACKEND_URL =
-  process.env.HEARTWOOD_BACKEND_URL ?? "http://127.0.0.1:3080"
+  process.env.HEARTWOOD_BACKEND_URL ?? "https://satin-log-2358.fly.dev"
 
 async function parseApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {

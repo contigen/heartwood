@@ -1,7 +1,8 @@
 import { handleApiRequest } from "@/lib/fallback-state"
 import { NextRequest, NextResponse } from "next/server"
 
-const BACKEND_URL = process.env.HEARTWOOD_BACKEND_URL ?? "http://127.0.0.1:3080"
+const BACKEND_URL =
+  process.env.HEARTWOOD_BACKEND_URL ?? "https://satin-log-2358.fly.dev"
 
 export async function GET(
   request: NextRequest,
