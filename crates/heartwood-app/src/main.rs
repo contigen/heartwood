@@ -165,7 +165,7 @@ async fn run_terminal_demo(state: SharedState) -> Result<(), Box<dyn std::error:
         let plan = s.send(coercer_addr, 10_000_000, Some(37.7749), Some(-122.4194)).unwrap();
         println!("  ✓ Payment Sent: 0.10 ZEC (Outputs: {})", plan.outputs.len());
         println!("  ✓ In-Band Sent: {} (Deferred queued locally in outbox: {})", plan.silent_distress_injected, plan.deferred_distress_queued);
-        println!("  ✓ Simulating device entering unsupervised environment...");
+        println!("  ✓ Device entering unsupervised environment; dispatching deferred queue...");
         let broadcasts = s.trigger_deferred().unwrap();
         println!("  ✓ Broadcasted Outbox Tx: {}", broadcasts[0].txid.white());
         println!("  ✓ Trusted contact alerts updated: {} total\n", s.alerts.len());

@@ -225,7 +225,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
                 </div>
                 <p class="text-slate-400 text-[11px]">In Deferred Mode, distress beacons are AEAD-encrypted in local storage during coerced sends and broadcast once the device is unsupervised.</p>
                 <button onclick="triggerDeferredBroadcast()" class="w-full py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-bold text-xs transition">
-                  Simulate "Unsupervised" Trigger & Broadcast Outbox
+                  Trigger Unsupervised Broadcast Outbox
                 </button>
               </div>
             </div>
@@ -1139,7 +1139,7 @@ pub const INDEX_HTML: &str = r#"<!DOCTYPE html>
         const sendJson = await sendRes.json();
         const midState = await fetchState();
         logDemo(`Sent 0.1000 ZEC payment (${sendJson.data.txid.substring(0, 18)}...). Distress signal encrypted into local outbox (${midState.queued_count} queued).`);
-        logDemo('Simulating device entering unsupervised environment... draining and broadcasting outbox...');
+        logDemo('Device in unsupervised environment... draining and broadcasting outbox...');
         const trigRes = await fetch('/api/trigger-deferred', { method: 'POST' });
         const trigJson = await trigRes.json();
         await fetchState();

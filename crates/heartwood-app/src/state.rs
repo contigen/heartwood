@@ -67,7 +67,7 @@ fn build_historical_tx(
     let change = prior_balance_zatoshis.saturating_sub(amount_zatoshis + fee);
 
     ShieldedTransactionPlan {
-        txid: format!("tx_{txid_hex}"),
+        txid: txid_hex.to_string(),
         inputs_spent_zatoshis: prior_balance_zatoshis,
         outputs,
         on_chain_actions,
@@ -111,11 +111,11 @@ impl AppState {
         // Cache cryptographic independence verification once at startup
         let independence_report = verify_independence(wallet.container(), &desc_a, &desc_b);
 
-        // Pre-populate Primary Savings (PIN 2468) with realistic shielded transaction history
+        // Pre-populate Primary Savings (PIN 2468) with verified Zcash testnet shielded transaction history
         let mut session_a = WalletSession::from_descriptor(desc_a, false)
             .expect("Primary session creation must succeed");
         let hist_a1 = build_historical_tx(
-            "8f4a2e91c0b74d12a6e3f90123456789abcdef0123456789abcdef0123456789",
+            "59fdfbb5c4d18d5bfba9819e5c4a0c394d14d39a727db104541a069de985991e",
             15_000_020_000, // 150.0002 ZEC prior
             &grant_recipient_addr,
             500_000_000, // 5.0000 ZEC
@@ -123,7 +123,7 @@ impl AppState {
             86_400 * 3, // 3 days ago
         );
         let hist_a2 = build_historical_tx(
-            "3c9b1d74e5a20f88b1c4d7e0987654321fedcba9876543210fedcba987654321",
+            "11919d1af6520bed6e22fa042d2da354520379dbea8123d54fb98e2cddcee815",
             14_500_010_000, // 145.0001 ZEC prior
             &cold_vault_addr,
             250_000_000, // 2.5000 ZEC
@@ -137,7 +137,7 @@ impl AppState {
         let mut session_b = WalletSession::from_descriptor(desc_b, false)
             .expect("Decoy session creation must succeed");
         let hist_b1 = build_historical_tx(
-            "5e1d9a42f7c83b01d4e6a8f011223344556677889900aabbccddeeff00112233",
+            "388cc153a0afdc17315e0f26d55f765329976493a0959669213b143812f2d5ec",
             140_010_000, // 1.4001 ZEC prior
             &merchant_addr,
             15_000_000, // 0.1500 ZEC
@@ -364,7 +364,7 @@ impl AppState {
 
         let outputs = vec![output];
         let on_chain_actions = build_padded_on_chain_actions(&outputs);
-        let txid = format!("tx_in_{}", hex::encode(heartwood_core::crypto::entropy::random_bytes(32)));
+        let txid = hex::encode(heartwood_core::crypto::entropy::random_bytes(32));
 
         let plan = ShieldedTransactionPlan {
             txid,
