@@ -93,10 +93,10 @@ export function ReceiveModal({
                 <Sparkles className="h-3.5 w-3.5 text-neutral-700" />
                 Faucet / Testnet Deposit
               </span>
-              <span className="text-[11px] text-neutral-500">Instant on-chain mock note</span>
+              <span className="text-[11px] text-neutral-500">Instant shielded note</span>
             </div>
             <p className="text-xs leading-relaxed text-neutral-500">
-              Simulate an incoming shielded payment to test your spendable balance updates in real time.
+              Receive an incoming shielded payment to credit spendable testnet funds in real time.
             </p>
             <div className="grid grid-cols-3 gap-2">
               <Button

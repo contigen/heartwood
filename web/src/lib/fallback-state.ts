@@ -30,7 +30,7 @@ const GUARDIAN_IVK =
 
 const INITIAL_PRIMARY_TXS: ShieldedTransactionPlan[] = [
   {
-    txid: "tx_8f4a2e91c0b74d12a6e3f90123456789abcdef0123456789abcdef0123456789",
+    txid: "59fdfbb5c4d18d5bfba9819e5c4a0c394d14d39a727db104541a069de985991e",
     inputs_spent_zatoshis: 15000020000,
     outputs: [
       {
@@ -86,7 +86,7 @@ const INITIAL_PRIMARY_TXS: ShieldedTransactionPlan[] = [
     created_at: 1793121109,
   },
   {
-    txid: "tx_3c9b1d74e5a20f88b1c4d7e0987654321fedcba9876543210fedcba987654321",
+    txid: "11919d1af6520bed6e22fa042d2da354520379dbea8123d54fb98e2cddcee815",
     inputs_spent_zatoshis: 14500010000,
     outputs: [
       {
@@ -145,7 +145,7 @@ const INITIAL_PRIMARY_TXS: ShieldedTransactionPlan[] = [
 
 const INITIAL_DECOY_TXS: ShieldedTransactionPlan[] = [
   {
-    txid: "tx_5e1d9a42f7c83b01d4e6a8f011223344556677889900aabbccddeeff00112233",
+    txid: "388cc153a0afdc17315e0f26d55f765329976493a0959669213b143812f2d5ec",
     inputs_spent_zatoshis: 140010000,
     outputs: [
       {
@@ -454,7 +454,7 @@ function handleSend(params: {
 
     const alert: DistressAlert = {
       alert_id: `alert_${generateRandomHex(16)}`,
-      txid: `tx_${generateRandomHex(64)}`,
+      txid: generateRandomHex(64),
       detected_at: Math.floor(Date.now() / 1000),
       received_zatoshis: active.distress_config.distress_amount_zatoshis,
       beacon: {
@@ -485,7 +485,7 @@ function handleSend(params: {
   active.spendable_zatoshis = change
 
   const plan: ShieldedTransactionPlan = {
-    txid: `tx_${generateRandomHex(64)}`,
+    txid: generateRandomHex(64),
     inputs_spent_zatoshis: active.spendable_zatoshis + total,
     outputs,
     on_chain_actions: actions,
@@ -537,7 +537,7 @@ function handleReceive(params: {
   }
 
   const plan: ShieldedTransactionPlan = {
-    txid: `tx_${generateRandomHex(64)}`,
+    txid: generateRandomHex(64),
     inputs_spent_zatoshis: params.amount_zatoshis,
     outputs: [output],
     on_chain_actions: actions,

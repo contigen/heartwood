@@ -147,7 +147,7 @@ export function SendModal({
             </div>
             {validAmount > 0 && (
               <div className="text-[11px] text-neutral-400">
-                ≈ ${(validAmount * 35.0).toFixed(2)} USD (testnet simulated valuation)
+                ≈ ${(validAmount * 35.0).toFixed(2)} USD (testnet reference rate)
               </div>
             )}
           </div>

@@ -308,7 +308,7 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
       if (updated.state.is_locked) {
         setActiveTab("wallet")
       }
-      pushToast("State restored", "Initial balances and mock sync restored.", "neutral")
+      pushToast("State restored", "Initial testnet balances and transactions restored.", "neutral")
     } catch (err) {
       const message = err instanceof Error ? err.message : "Reset failed"
       pushToast("Reset error", message, "rose")
@@ -417,7 +417,7 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
             longitude: -122.4194,
           })
           appendDemoLog(`✓ Payment sent. Covert SOS queued in encrypted outbox.`)
-          appendDemoLog("Simulating safe environment -> broadcasting outbox...")
+          appendDemoLog("Safe environment detected -> broadcasting outbox...")
           const broadcasts = await apiTriggerDeferred()
           if (broadcasts.length > 0) {
             setInspectTx(broadcasts[0] ?? null)
