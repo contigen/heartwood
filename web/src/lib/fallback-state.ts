@@ -80,14 +80,14 @@ const INITIAL_PRIMARY_TXS: ShieldedTransactionPlan[] = [
       },
     ],
     fee_zatoshis: 10000,
-    change_zatoshis: 14499990000,
+    change_zatoshis: 1425010000,
     silent_distress_injected: false,
     deferred_distress_queued: false,
     created_at: 1793121109,
   },
   {
     txid: "11919d1af6520bed6e22fa042d2da354520379dbea8123d54fb98e2cddcee815",
-    inputs_spent_zatoshis: 14500010000,
+    inputs_spent_zatoshis: 1450010000,
     outputs: [
       {
         recipient_address:
@@ -136,7 +136,7 @@ const INITIAL_PRIMARY_TXS: ShieldedTransactionPlan[] = [
       },
     ],
     fee_zatoshis: 10000,
-    change_zatoshis: 14249990000,
+    change_zatoshis: 1425000000,
     silent_distress_injected: false,
     deferred_distress_queued: false,
     created_at: 1793171509,
@@ -219,8 +219,8 @@ function initializeStore(): ServerMemoryStore {
     account_name: "Primary Savings",
     unified_address: PRIMARY_ADDRESS,
     incoming_viewing_key: PRIMARY_IVK,
-    balance_zatoshis: 14250000000,
-    spendable_zatoshis: 14250000000,
+    balance_zatoshis: 1425000000,
+    spendable_zatoshis: 1425000000,
     transactions: [...INITIAL_PRIMARY_TXS],
     distress_config: null,
     is_synthetic: false,
@@ -349,7 +349,7 @@ function handleUnlock(pin: string): UnlockMetrics {
     })
     return metrics
   }
-  if (pin === "1357") {
+  if (pin === "1357" || pin === "1337") {
     const s = memoryStore.sessions[DECOY_ADDRESS]
     memoryStore.activeSession = { ...s }
     const metrics: UnlockMetrics = {
@@ -361,7 +361,7 @@ function handleUnlock(pin: string): UnlockMetrics {
     memoryStore.lastMetrics = metrics
     memoryStore.timingSamples.push({
       label: "Decoy PIN B (Duress)",
-      pin: "1357",
+      pin: pin,
       elapsed_ms: elapsedMs,
       is_synthetic: false,
     })

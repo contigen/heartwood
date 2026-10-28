@@ -304,7 +304,7 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
       const updated = await refreshSnapshot()
       setInspectTx(null)
       setActiveStage(null)
-      setDemoLogs(["Restored default testnet balances (142.50 ZEC & 1.25 ZEC)."])
+      setDemoLogs(["Restored default testnet balances (14.25 ZEC & 1.25 ZEC)."])
       if (updated.state.is_locked) {
         setActiveTab("wallet")
       }

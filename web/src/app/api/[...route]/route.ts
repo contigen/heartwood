@@ -14,7 +14,7 @@ export async function GET(
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 600)
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
     const backendRes = await fetch(`${BACKEND_URL}/api${path}${url.search}`, {
       signal: controller.signal,
       cache: "no-store",
@@ -46,7 +46,7 @@ export async function POST(
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 600)
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
     const backendRes = await fetch(`${BACKEND_URL}/api${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
