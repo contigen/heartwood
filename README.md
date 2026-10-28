@@ -1,99 +1,117 @@
-# 🌲 Heartwood: Duress-Aware Shielded Zcash Wallet
+# Heartwood: Duress-Aware Shielded Zcash Wallet
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)]()
-[![Hackathon](https://img.shields.io/badge/Zecathon-Wildcard%20Track-emerald.svg)](https://thezecathon.com)
+Live web deployment: [https://web-three-tawny-juip8wct94.vercel.app](https://web-three-tawny-juip8wct94.vercel.app)
 
-> *Named for the hidden, structural inner layer of a tree, in keeping with Zcash's plant-lineage pool names (Sapling → Orchard → Ironwood).*
+Heartwood is a shielded Zcash wallet designed for physical coercion, device inspection, and extortion scenarios. It hides a second wallet identity inside local storage using deniable encryption. 
 
-Heartwood is a Zcash shielded wallet featuring a **cryptographically undetectable hidden-volume dual identity**. Entering one PIN unlocks the user's real shielded balance; entering a duress PIN unlocks a genuinely spendable decoy balance. When a payment is sent under coercion, the transaction silently embeds an in-band emergency distress signal to a pre-configured trusted contact. 
+When unlocked with a primary PIN, it loads the real shielded savings account. When unlocked with a duress PIN, it loads an independently funded decoy account. Payments sent from the decoy account automatically insert an in-band emergency alert into the same shielded transaction, addressed to a trusted contact's viewing key. The outgoing transfer provides cover for the alert.
 
-**The money is cover for the signal.**
+## How it works
 
----
+### 1. Hidden-volume dual keystore
+The keystore is a fixed 64 KiB binary blob (`65,536 bytes`) filled with CSPRNG random data on initialization. It has no headers, volume markers, or partition tables.
+- **PIN A (`2468`)**: Derives an Argon2id key that decrypts Slot 0, loading the primary spending key and transaction history.
+- **PIN B (`1357`)**: Derives an independent Argon2id key that decrypts Slot 1, loading the decoy spending key. Slot 1 resides in space that appears as random padding when inspecting Slot 0.
+- **Unknown PINs (e.g. `0000`)**: Execute the same Argon2id pipeline and derive a synthetic zero-balance wallet instead of returning a MAC error. This prevents trial-and-error oracle attacks.
 
-## 🌟 Key Features
+### 2. Constant-time execution
+Both Slot 0 and Slot 1 keys are computed on every unlock attempt. The unlock routine always runs both Argon2id derivations so that execution time remains uniform regardless of which PIN is entered.
 
-1. **Hidden-Volume Dual Keystore**: Modelled on VeraCrypt/TrueCrypt hidden volumes. A single fixed 64 KiB container initialized with CSPRNG noise. No headers, signatures, or metadata indicating a second volume exists.
-2. **Zero Error Oracles**: Wrong PIN attempts decrypt plausible synthetic empty wallet sessions rather than throwing distinguishing MAC failures.
-3. **Identical Code-Path & Timing**: Every unlock computes both Argon2id KDF passes, guaranteeing statistically indistinguishable timing profiles ($\approx 3.5\text{s}$) across all PINs.
-4. **In-Band Distress Beacon**: Injects a covert second shielded output into the coerced transfer carrying a 512-byte emergency memo (ZIP 302) with coordinates, timestamp, and alert payload.
-5. **Immediate and Deferred Broadcast Modes**: Immediate in-band dispatch or encrypted local queuing to prevent network detection while supervised.
-6. **Trusted Contact Scanner**: Enables the emergency contact to decrypt compact block outputs using their Incoming Viewing Key (IVK) and monitor duress alerts in real time.
-7. **Full-Featured Web Application & Terminal CLI**: Embedded dark-mode Glassmorphism dashboard with real-time multi-perspective views for hackathon judging.
+### 3. Dual real accounts
+Both identities use ZIP-32 derivation to generate genuine Orchard and Sapling keys:
+- **Primary account**: 14.25 ZEC balance with historical shielded transfers.
+- **Decoy account**: 1.25 ZEC balance with everyday merchant transaction history.
 
----
+### 4. In-band emergency distress signal
+When a payment leaves the decoy account, Heartwood adds a second shielded output inside the exact same Orchard transaction:
+- Output 0: The transfer demanded by the coercer.
+- Output 1: A 10,000 zatoshi shielded output addressed to the guardian's incoming viewing key (`uviewtest1...`). The 512-byte encrypted memo contains GPS coordinates, a timestamp, and an incident code.
+- Padding: The transaction bundle is padded to 3 actions (`1,740 bytes`), matching the standard on-chain footprint of normal multi-output Orchard transactions.
+- On-chain appearance: Outside observers and the coercer see only encrypted ciphertexts and nullifiers. Only someone with the guardian viewing key can decrypt Output 1.
 
-## 🚀 Quickstart
+### 5. Immediate and deferred broadcast
+If active network traffic during the incident creates personal risk, the distress payload can be queued in an encrypted local outbox and dispatched automatically once the device reconnects unattended.
 
-### Prerequisites
-- [Rust](https://rustup.rs/) (1.80+)
-- Cargo
+## Testing credentials
 
-### 1. Launch the Interactive Web Application
+- **Primary PIN**: `2468` (Primary Savings, 14.25 ZEC)
+- **Duress PIN**: `1357` (Personal Daily Decoy, 1.25 ZEC, injects emergency alert)
+- **Synthetic PIN**: `0000` (Synthetic ephemeral wallet, zero balance)
+
+## Quickstart
+
+### Option 1: Live deployment
+Open [https://web-three-tawny-juip8wct94.vercel.app](https://web-three-tawny-juip8wct94.vercel.app) in any browser.
+
+### Option 2: Local development
+
+#### 1. Start the Rust core daemon
 ```bash
-cargo run -p heartwood-app -- serve --port 3000
+cargo run -p heartwood-app -- serve --port 3080
 ```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+This runs the Axum API server on `http://127.0.0.1:3080`.
 
-**Preset Test Credentials:**
-- **Primary PIN (`PIN A`):** `2468` (Real savings: 142.50 ZEC)
-- **Decoy PIN (`PIN B`):** `1357` (Decoy wallet: 1.25 ZEC with Silent SOS)
-- **Invalid PIN:** `0000` (Synthetic ephemeral wallet, zero balance)
-
----
-
-### 2. Run the Automated 5-Stage Judging Demo in Terminal
+#### 2. Start the Next.js interface
 ```bash
+cd web
+bun install
+bun run dev
+```
+Open [http://localhost:3000](http://localhost:3000).
+
+## Command line tools
+
+Run automated terminal tests and audits from the workspace root:
+
+```bash
+# Run integration test suite
+cargo test
+
+# Run mathematical independence and container entropy audit
+cargo run -p heartwood-app -- audit
+
+# Run terminal demonstration script
 cargo run -p heartwood-app -- demo
 ```
 
-### 3. Run Cryptographic Independence & Entropy Audit
-```bash
-cargo run -p heartwood-app -- audit
-```
+The test suite covers:
+- `tests/independence_test.rs`: Verifies that Seed B cannot be derived from Seed A and confirms container Shannon entropy meets 7.98+ bits per byte.
+- `tests/constant_time_test.rs`: Benchmarks unlock latency across primary, decoy, and invalid PINs.
+- `tests/multi_output_test.rs`: Validates in-band multi-output shielded bundle construction and viewing key trial-decryption.
+- `tests/deferred_broadcast_test.rs`: Verifies deferred outbox queuing and broadcast behavior.
 
-### 4. Run the Full Test Suite
-```bash
-cargo test -p heartwood-core -- --nocapture
-```
-Runs:
-- `tests/independence_test.rs`: Mathematical isolation between Seed A and Seed B.
-- `tests/constant_time_test.rs`: Side-channel timing equivalence benchmark.
-- `tests/multi_output_test.rs`: In-band multi-output shielded note and memo scanner verification.
-- `tests/deferred_broadcast_test.rs`: Encrypted deferred outbox persistence and broadcast.
-
----
-
-## 📐 Architecture
+## Project structure
 
 ```
 heartwood/
 ├── crates/
-│   ├── heartwood-core/            # Cryptographic & Zcash protocol core
-│   │   ├── src/
-│   │   │   ├── crypto/            # Argon2id, ChaCha20-Poly1305, Shannon Entropy
-│   │   │   ├── keystore/          # Hidden volume container, independence audit
-│   │   │   ├── wallet/            # ZIP-32 derivation, account session, spend planner
-│   │   │   └── distress/          # 512-byte memo beacon, injector, deferred queue, IVK scanner
-│   │   └── tests/                 # Integration test suite
-│   └── heartwood-app/             # Web App server & CLI runner
+│   ├── heartwood-core/          # Protocol core
+│   │   ├── src/crypto/          # Argon2id, ChaCha20-Poly1305, Shannon entropy calculation
+│   │   ├── src/keystore/        # Hidden-volume storage, zero-oracle decryption
+│   │   ├── src/wallet/          # ZIP-32 Orchard/Sapling derivation, unified addresses
+│   │   └── src/distress/        # Multi-output transaction planner, memo encoder, IVK scanner
+│   │   └── tests/               # Integration tests
+│   └── heartwood-app/           # Axum API server & CLI runner
 │       └── src/
-│           ├── main.rs            # Application CLI & server entrypoint
-│           ├── state.rs           # Shared state manager
-│           ├── routes.rs          # Axum REST endpoints
-│           └── static_assets.rs   # Embedded SPA (Tailwind CSS, Glassmorphism)
+│           ├── main.rs          # CLI entry point
+│           ├── routes.rs        # REST API endpoints
+│           └── state.rs         # In-memory wallet state
+├── web/                         # Next.js 16 web application
+│   ├── src/app/                 # App router and API fallback routes
+│   ├── src/components/          # UI views (Wallet, Address Book, Guardian Monitor, Forensics)
+│   └── src/lib/                 # API client, TypeScript definitions, state engine
 └── docs/
-    ├── THREAT_MODEL.md            # Threat model, forensic backup analysis, residual risks
-    ├── CRYPTO_INDEPENDENCE.md     # Mathematical proof of Seed B / Seed A non-derivability
-    └── SUBMISSION.md              # Zecathon hackathon submission text
+    ├── THREAT_MODEL.md          # Threat model, forensic backup analysis, residual risks
+    ├── CRYPTO_INDEPENDENCE.md   # Non-derivability mathematical proof
+    └── SUBMISSION.md            # Hackathon submission text
 ```
 
----
+## Threat model and limits
 
-## 📜 License
+- **Backups**: Unencrypted local disk clones or OS-level cloud backups (e.g. iCloud, Google Drive) could allow an attacker with forensic tools to observe container file modifications over time. Keystore blobs should be excluded from cloud backups.
+- **Repeated coercion**: If an attacker forces multiple unlock attempts across several days and compares spend history with external data, cryptographic deniability cannot prevent social exposure.
+- **Hardware timing**: On constrained mobile processors, memory bus contention during Argon2id passes may produce slight timing jitter. The test suite measures this variance across 100 iterations to verify indistinguishability within statistical noise margins.
 
-Licensed under either of:
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT license ([LICENSE-MIT](LICENSE-MIT))
-at your option.
+## License
+
+Dual-licensed under Apache 2.0 and MIT.
