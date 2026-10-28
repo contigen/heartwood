@@ -133,8 +133,8 @@ export function SendModal({
             <div className="relative">
               <Input
                 type="number"
-                step="0.001"
-                min="0.0001"
+                step="any"
+                min="0.00000001"
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
                 placeholder="0.0000"
