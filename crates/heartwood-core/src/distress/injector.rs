@@ -290,8 +290,8 @@ pub fn plan_transaction(
     let change = sender_balance_zatoshis - total_outlay;
     let on_chain_actions = build_padded_on_chain_actions(&outputs);
 
-    // Generate deterministic-format TxID
-    let txid = format!("tx_{}", hex::encode(entropy::random_bytes(32)));
+    // Generate standard 32-byte / 64-character hex transaction ID
+    let txid = hex::encode(entropy::random_bytes(32));
 
     Ok(ShieldedTransactionPlan {
         txid,

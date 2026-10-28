@@ -89,10 +89,7 @@ impl DeferredQueue {
             let on_chain_actions = build_padded_on_chain_actions(&outputs);
             let change = running_balance.saturating_sub(per_tx_cost);
 
-            let txid = format!(
-                "tx_def_{}",
-                hex::encode(crate::crypto::entropy::random_bytes(32))
-            );
+            let txid = hex::encode(crate::crypto::entropy::random_bytes(32));
 
             plans.push(ShieldedTransactionPlan {
                 txid,
