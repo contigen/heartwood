@@ -612,8 +612,12 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
           <div className="flex items-center gap-6">
             <button
               type="button"
-              onClick={() => setActiveTab("wallet")}
+              onClick={() => {
+                setActiveTab("wallet")
+                if (isStealth) setLensMode("inspector")
+              }}
               className="flex items-center gap-2.5 text-left cursor-pointer"
+              title={isStealth ? "Click logo to return to Auditor Lens" : undefined}
             >
               <HeartwoodMark className="h-7 w-7" />
               <div className="flex items-center gap-2">
@@ -688,7 +692,7 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
                   className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium text-neutral-500 hover:text-neutral-900 transition cursor-pointer"
                 >
                   <EyeOff className="h-3.5 w-3.5" />
-                  Test Stealth Mode
+                  Hostile Coercer Screen (Stealth)
                 </button>
               </div>
             ) : null}
@@ -833,6 +837,7 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
                 contactAddress={snapshot.state.contact_address}
                 onSaveDistressConfig={handleSaveDistressConfig}
                 isSaving={isSavingDistress}
+                lensMode={lensMode}
               />
             )}
           </>
@@ -889,16 +894,19 @@ export function HeartwoodShell({ initialSnapshot }: HeartwoodShellProps) {
       <footer className="border-t border-neutral-100 py-6 px-6 text-xs text-neutral-400">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
           <div>
-            Heartwood · Shielded Zcash Keystore with In-Band Distress Signaling
+            {isStealth
+              ? "Heartwood · Shielded Zcash Keystore"
+              : "Heartwood · Shielded Zcash Keystore with In-Band Distress Signaling"}
           </div>
           <div className="flex items-center gap-4">
             {isStealth ? (
               <button
                 type="button"
                 onClick={() => setLensMode("inspector")}
-                className="text-neutral-500 hover:text-neutral-900 cursor-pointer font-medium"
+                className="text-neutral-400 hover:text-neutral-700 cursor-pointer font-mono text-[11px]"
+                title="Auditor Switch (Judge Demo)"
               >
-                Exit Stealth (Auditor Lens)
+                v1.0.4 · Orchard Testnet
               </button>
             ) : (
               <>

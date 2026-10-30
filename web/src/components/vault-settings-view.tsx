@@ -5,7 +5,7 @@ import { Check, Eye, EyeOff, KeyRound, Lock, Radio, Save, ShieldCheck } from "lu
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { DistressConfig, DistressMode, SavedContact } from "@/lib/heartwood-types"
+import type { DistressConfig, DistressMode, LensMode, SavedContact } from "@/lib/heartwood-types"
 
 export type VaultSettingsViewProps = {
   accountName: string
@@ -19,6 +19,7 @@ export type VaultSettingsViewProps = {
     mode: DistressMode
   }) => Promise<void>
   isSaving: boolean
+  lensMode?: LensMode
 }
 
 export function VaultSettingsView({
@@ -29,8 +30,12 @@ export function VaultSettingsView({
   contactAddress,
   onSaveDistressConfig,
   isSaving,
+  lensMode = "inspector",
 }: VaultSettingsViewProps) {
   const [showMnemonic, setShowMnemonic] = React.useState(false)
+  const isDecoySession = distressConfig !== null
+  const hideDuressRules = lensMode === "stealth" || isDecoySession
+
   const [emergencyAddress, setEmergencyAddress] = React.useState(
     distressConfig?.trusted_contact_address || contactAddress
   )
@@ -59,12 +64,14 @@ export function VaultSettingsView({
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 sm:text-3xl">
-            Vault Settings & Duress Configuration
+            {hideDuressRules ? "Vault Settings" : "Vault Settings & Duress Configuration"}
           </h1>
           <Badge variant="emerald">ZIP-32 Keystore</Badge>
         </div>
         <p className="text-sm text-neutral-500">
-          Manage your shielded account credentials, recovery phrase, and covert emergency parameters.
+          {hideDuressRules
+            ? "Manage your shielded account credentials, recovery phrase, and protocol parameters."
+            : "Manage your shielded account credentials, recovery phrase, and covert emergency parameters."}
         </p>
       </div>
 
@@ -118,133 +125,167 @@ export function VaultSettingsView({
         )}
       </div>
 
-      <form
-        onSubmit={handleSave}
-        className="rounded-2xl border border-neutral-200 bg-white p-6 space-y-6 shadow-xs"
-      >
-        <div className="border-b border-neutral-100 pb-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-neutral-950">
-              Covert Emergency & Duress Rules
-            </h2>
-            <Badge variant="rose">In-Band Signal</Badge>
-          </div>
-          <p className="text-xs text-neutral-500">
-            These rules control how covert distress signals are constructed when transactions are sent from the decoy volume under coercion.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs font-medium text-neutral-600">
-              <label>Emergency Guardian Shielded Address</label>
-              {savedContacts.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] text-neutral-400">Select contact:</span>
-                  {savedContacts.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setEmergencyAddress(c.address)}
-                      className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-700 hover:bg-neutral-200 cursor-pointer"
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+      {hideDuressRules ? (
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 space-y-4 shadow-xs">
+          <div className="border-b border-neutral-100 pb-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-neutral-950">
+                Network & Shielded Protocol
+              </h2>
+              <Badge variant="emerald">Orchard Active</Badge>
             </div>
-            <Input
-              value={emergencyAddress}
-              onChange={(e) => setEmergencyAddress(e.target.value)}
-              placeholder="utest1..."
-              className="font-mono text-xs"
-              required
-            />
-            <p className="text-[11px] text-neutral-400">
-              The recipient of the silent Output #1 note. Only this contact can trial-decrypt the distress beacon.
+            <p className="text-xs text-neutral-500">
+              Current consensus branch, transaction fees, and cryptographic proving parameters.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3.5 space-y-1">
+              <span className="text-neutral-400 font-mono text-[11px] block">Consensus Branch</span>
+              <span className="font-semibold text-neutral-900">NU5 (ZIP-224 / Orchard Pool)</span>
+            </div>
+            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3.5 space-y-1">
+              <span className="text-neutral-400 font-mono text-[11px] block">Transaction Fee Standard</span>
+              <span className="font-semibold text-neutral-900">ZIP-317 Proportional Fees</span>
+            </div>
+            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3.5 space-y-1">
+              <span className="text-neutral-400 font-mono text-[11px] block">Zero-Knowledge Prover</span>
+              <span className="font-semibold text-neutral-900">Halo 2 (No Trusted Setup)</span>
+            </div>
+            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3.5 space-y-1">
+              <span className="text-neutral-400 font-mono text-[11px] block">Keystore Protection</span>
+              <span className="font-semibold text-neutral-900">Twin Argon2id Memory-Hard KDF</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSave}
+          className="rounded-2xl border border-neutral-200 bg-white p-6 space-y-6 shadow-xs"
+        >
+          <div className="border-b border-neutral-100 pb-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-neutral-950">
+                Covert Emergency & Duress Rules
+              </h2>
+              <Badge variant="rose">In-Band Signal</Badge>
+            </div>
+            <p className="text-xs text-neutral-500">
+              These rules control how covert distress signals are constructed when transactions are sent from the decoy volume under coercion.
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-neutral-600">
-              Default Emergency Distress Payload
-            </label>
-            <Input
-              value={emergencyMessage}
-              onChange={(e) => setEmergencyMessage(e.target.value)}
-              placeholder="e.g. COERCION ALERT: Forced transfer executed on device"
-              className="text-xs"
-              required
-            />
-            <p className="text-[11px] text-neutral-400">
-              Encoded into the 512-byte ZIP-302 memo frame with timestamp, coerced recipient, and amount.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-              <label className="text-xs font-semibold text-neutral-900 block">
-                Broadcast Dispatch Mode
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEmergencyMode("Immediate")}
-                  className={`flex-1 rounded-lg border py-2 text-xs font-medium transition cursor-pointer ${
-                    emergencyMode === "Immediate"
-                      ? "border-neutral-950 bg-neutral-950 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
-                  }`}
-                >
-                  Immediate (In-Band)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEmergencyMode("Deferred")}
-                  className={`flex-1 rounded-lg border py-2 text-xs font-medium transition cursor-pointer ${
-                    emergencyMode === "Deferred"
-                      ? "border-neutral-950 bg-neutral-950 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
-                  }`}
-                >
-                  Deferred (Outbox)
-                </button>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-medium text-neutral-600">
+                <label>Emergency Guardian Shielded Address</label>
+                {savedContacts.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] text-neutral-400">Select contact:</span>
+                    {savedContacts.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setEmergencyAddress(c.address)}
+                        className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-700 hover:bg-neutral-200 cursor-pointer"
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <p className="text-[11px] text-neutral-500">
-                {emergencyMode === "Immediate"
-                  ? "Transmits covert note in the same transaction as the coerced payment."
-                  : "Queues beacon in encrypted local storage until the device is unsupervised."}
+              <Input
+                value={emergencyAddress}
+                onChange={(e) => setEmergencyAddress(e.target.value)}
+                placeholder="utest1..."
+                className="font-mono text-xs"
+                required
+              />
+              <p className="text-[11px] text-neutral-400">
+                The recipient of the silent Output #1 note. Only this contact can trial-decrypt the distress beacon.
               </p>
             </div>
 
-            <div className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-              <label className="text-xs font-semibold text-neutral-900 block">
-                GPS Telemetry
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-neutral-600">
+                Default Emergency Distress Payload
               </label>
-              <label className="flex items-center gap-2 text-xs text-neutral-700 cursor-pointer pt-1">
-                <input
-                  type="checkbox"
-                  checked={includeGps}
-                  onChange={(e) => setIncludeGps(e.target.checked)}
-                  className="rounded border-neutral-300"
-                />
-                <span>Attach coordinates (37.7749, -122.4194)</span>
-              </label>
-              <p className="text-[11px] text-neutral-500">
-                Embeds 16 bytes of binary lat/lon coordinates inside the 512B memo payload.
+              <Input
+                value={emergencyMessage}
+                onChange={(e) => setEmergencyMessage(e.target.value)}
+                placeholder="e.g. COERCION ALERT: Forced transfer executed on device"
+                className="text-xs"
+                required
+              />
+              <p className="text-[11px] text-neutral-400">
+                Encoded into the 512-byte ZIP-302 memo frame with timestamp, coerced recipient, and amount.
               </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                <label className="text-xs font-semibold text-neutral-900 block">
+                  Broadcast Dispatch Mode
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEmergencyMode("Immediate")}
+                    className={`flex-1 rounded-lg border py-2 text-xs font-medium transition cursor-pointer ${
+                      emergencyMode === "Immediate"
+                        ? "border-neutral-950 bg-neutral-950 text-white"
+                        : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
+                    }`}
+                  >
+                    Immediate (In-Band)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEmergencyMode("Deferred")}
+                    className={`flex-1 rounded-lg border py-2 text-xs font-medium transition cursor-pointer ${
+                      emergencyMode === "Deferred"
+                        ? "border-neutral-950 bg-neutral-950 text-white"
+                        : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
+                    }`}
+                  >
+                    Deferred (Outbox)
+                  </button>
+                </div>
+                <p className="text-[11px] text-neutral-500">
+                  {emergencyMode === "Immediate"
+                    ? "Transmits covert note in the same transaction as the coerced payment."
+                    : "Queues beacon in encrypted local storage until the device is unsupervised."}
+                </p>
+              </div>
+
+              <div className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                <label className="text-xs font-semibold text-neutral-900 block">
+                  GPS Telemetry
+                </label>
+                <label className="flex items-center gap-2 text-xs text-neutral-700 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={includeGps}
+                    onChange={(e) => setIncludeGps(e.target.checked)}
+                    className="rounded border-neutral-300"
+                  />
+                  <span>Attach coordinates (37.7749, -122.4194)</span>
+                </label>
+                <p className="text-[11px] text-neutral-500">
+                  Embeds 16 bytes of binary lat/lon coordinates inside the 512B memo payload.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <Button type="submit" disabled={isSaving || !emergencyAddress.trim()}>
-            <Save className="h-4 w-4" />
-            {isSaving ? "Saving Configuration..." : "Save Duress Settings"}
-          </Button>
-        </div>
-      </form>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button type="submit" disabled={isSaving || !emergencyAddress.trim()}>
+              <Save className="h-4 w-4" />
+              {isSaving ? "Saving Configuration..." : "Save Duress Settings"}
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }

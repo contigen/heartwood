@@ -209,51 +209,53 @@ export function PinVaultGate({
           </div>
         </div>
 
-        <div className="pt-2 text-center">
-          <button
-            type="button"
-            onClick={() => setShowDevShortcuts(!showDevShortcuts)}
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-900 transition cursor-pointer"
-          >
-            <KeyRound className="h-3 w-3" />
-            <span>Testing & Judge Credentials</span>
-            {showDevShortcuts ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
-          </button>
-
-          {showDevShortcuts && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mt-3 grid grid-cols-1 gap-2 text-left"
+        {lensMode !== "stealth" && (
+          <div className="pt-2 text-center">
+            <button
+              type="button"
+              onClick={() => setShowDevShortcuts(!showDevShortcuts)}
+              className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-900 transition cursor-pointer"
             >
-              {TESTING_PRESETS.map((p) => (
-                <button
-                  key={p.pin}
-                  type="button"
-                  onClick={() => void handleSubmit(p.pin)}
-                  className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 text-xs transition hover:border-neutral-900 cursor-pointer"
-                >
-                  <div className="space-y-0.5">
-                    <div className="font-semibold text-neutral-950 flex items-center gap-2">
-                      <span className="font-mono bg-neutral-100 px-1.5 py-0.5 rounded text-[11px]">
-                        PIN {p.pin}
-                      </span>
-                      <span>{p.title}</span>
+              <KeyRound className="h-3 w-3" />
+              <span>Testing & Judge Credentials</span>
+              {showDevShortcuts ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </button>
+
+            {showDevShortcuts && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-3 grid grid-cols-1 gap-2 text-left"
+              >
+                {TESTING_PRESETS.map((p) => (
+                  <button
+                    key={p.pin}
+                    type="button"
+                    onClick={() => void handleSubmit(p.pin)}
+                    className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 text-xs transition hover:border-neutral-900 cursor-pointer"
+                  >
+                    <div className="space-y-0.5">
+                      <div className="font-semibold text-neutral-950 flex items-center gap-2">
+                        <span className="font-mono bg-neutral-100 px-1.5 py-0.5 rounded text-[11px]">
+                          PIN {p.pin}
+                        </span>
+                        <span>{p.title}</span>
+                      </div>
+                      <div className="text-[11px] text-neutral-500">{p.detail}</div>
                     </div>
-                    <div className="text-[11px] text-neutral-500">{p.detail}</div>
-                  </div>
-                  <span className="font-mono font-semibold text-neutral-900">
-                    {p.balance} →
-                  </span>
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </div>
+                    <span className="font-mono font-semibold text-neutral-900">
+                      {p.balance} →
+                    </span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </div>
+        )}
       </motion.div>
     </div>
   )
